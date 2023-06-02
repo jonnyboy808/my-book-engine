@@ -26,6 +26,38 @@ const resolvers = {
         throw new AuthenticationError("Email or password don't match");
       }
 
-    }
-}
-}
+
+      const correctPw = await user.isCorrectPassword(password);
+
+      if (!correctPw) {
+        throw new AuthenticationError("Email or password don't match");
+      }
+      const token = signToken(user);
+      return { token, user };
+    },
+    saveBook: async (parent, { bookData }, context) => {
+      if (context.user) {
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $push: { savedBooks: bookData } },
+          { new: true }
+        );
+        return updatedUser;
+      }
+      throw new AuthenticationError("please try logging in again");
+    },
+    removeBook: async (parent, { bookId }, context) => {
+      if (context.user) {
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $pull: { savedBooks: { bookId } } },
+          { new: true }
+        );
+        return updatedUser;
+      }
+      throw new AuthenticationError("please try logging in again");
+    },
+  },
+};
+
+module.exports = resolvers;
