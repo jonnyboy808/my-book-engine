@@ -1,7 +1,8 @@
 const { User } = require("../models");
 const { AuthenticationError } = require("apollo-server-express");
 const { signToken } = require("../utils/auth");
-
+ 
+// used guidance from module 20 activity # 26-Stu_Resolver-Context
 const resolvers = {
   Query: {
     me: async (parent, args, context) => {
@@ -9,9 +10,11 @@ const resolvers = {
         const userData = await user.findOne({ _id: context.user._id });
         return userData;
       }
-      throw new AuthenticationError();
+      throw new AuthenticationError('You need to be logged in!');
     },
   },
+
+  // used guidance from module 20 activity # 26-Stu_Resolver-Context
   Mutation: {
     addUser: async (parent, args) => {
       const user = await User.create(args);
@@ -26,13 +29,13 @@ const resolvers = {
         throw new AuthenticationError("Email or password don't match");
       }
 
-
       const correctPw = await user.isCorrectPassword(password);
 
       if (!correctPw) {
         throw new AuthenticationError("Email or password don't match");
       }
       const token = signToken(user);
+
       return { token, user };
     },
     saveBook: async (parent, { bookData }, context) => {
